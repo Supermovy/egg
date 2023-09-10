@@ -194,11 +194,11 @@
       :contract-id="params.contractId"
       :coop-code="params.coopCode"
       :known-contract="params.contract"
-      :known-league="params.league"
       :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
       :user-id="userId"
       :from-dashboard="true"
+      @success="onSuccess"
     />
   </template>
 </template>
@@ -209,6 +209,7 @@ import { useStore } from 'vuex';
 
 import {
   ContractLeague,
+  CoopStatus,
   earningBonusToFarmerRole,
   ei,
   formatEIValue,
@@ -272,7 +273,7 @@ export default defineComponent({
     );
     const dailyGifts = computed(() => prophecyEggsProgress.value.fromDailyGifts);
 
-    const coops = computed(() => getUserActiveCoopContracts(backup.value));
+    const coops = ref(getUserActiveCoopContracts(backup.value));
     const coopParams = computed(() =>
       [...coops.value]
       .sort((coopA,coopB) =>
@@ -286,6 +287,20 @@ export default defineComponent({
         grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
       }))
     );
+    const onSuccess = (coopStatus: CoopStatus) => {
+      // if final target not reached don't do anything
+      if (coopStatus.eggsLaid <= (coopStatus.leagueStatus?.finalTarget || Infinity)) {
+        return;
+      }
+      //find this contract in coop list
+      const index = coops.value.findIndex(c =>
+      `${c.contract?.identifier}:${c.coopIdentifier}` === `${coopStatus.contractId}:${coopStatus.coopCode}`
+      )
+      if (index >= 0) {
+        // update num goals acheived to update sorting
+        coops.value[index].numGoalsAchieved = coopStatus.contract?.gradeSpecs?.[0]?.goals?.length || 3
+      }
+    };
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
@@ -314,6 +329,7 @@ export default defineComponent({
       dailyGifts,
       coopParams,
       soloStatuses,
+      onSuccess,
       renderNonempty,
       formatEIValue,
       triggerRefresh,
