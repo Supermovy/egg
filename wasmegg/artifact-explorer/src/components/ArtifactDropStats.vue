@@ -17,24 +17,24 @@
           <mission-name :mission="m.mission" :target="m.loot.targetAfxId" />
         </div>
         <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
-          <li v-for="level in m.mission.maxLevel + 1" :key="level" class="text-sm">
+          <li v-for="level in m.mission.maxLevel" :key="level" class="text-sm">
             <span
               class="inline-flex items-center tabular-nums"
-              :class="levelIsSelected(m.mission, level - 1) ? 'text-green-700' : null"
-              >{{ level - 1 }}<star-icon class="h-4 w-4 text-yellow-400" />:</span>&nbsp;
+              :class="levelIsSelected(m.mission, level) ? 'text-green-700' : null"
+              >{{ level }}<star-icon class="h-4 w-4 text-yellow-400" />:</span>&nbsp;
 
-            <template v-if="m.loot.levels.find(x => x.level === level - 1)">
+            <template v-if="m.loot.levels.find(x => x.level === level)">
               <drop-rate
                 :mission="m.mission"
                 :level="level"
-                :total-drops="m.loot.levels.find(x => x.level === level - 1)!.totalDrops"
-                :item-drops="m.loot.levels.find(x => x.level === level - 1)!.counts"
+                :total-drops="m.loot.levels.find(x => x.level === level)?.totalDrops ?? 0"
+                :item-drops="m.loot.levels.find(x => x.level === level)?.counts ?? [0,0,0,0]"
                 :is-artifact="isArtifact"
-                :highlight="levelIsSelected(m.mission, level - 1)"
+                :highlight="levelIsSelected(m.mission, level)"
               />
             </template>
             <template v-else>
-              <span :class="levelIsSelected(m.mission, level - 1) ? 'text-green-700' : 'text-gray-500'">Not enough data</span>
+              <span :class="levelIsSelected(m.mission, level) ? 'text-green-700' : 'text-gray-500'">Not enough data</span>
             </template>
           </li>
         </ul>
